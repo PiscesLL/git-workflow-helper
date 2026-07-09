@@ -36,6 +36,21 @@ npm run tauri icon src/assets/icon.svg
 npm run tauri dev
 ```
 
+### 下载安装包（团队成员）
+
+无需安装 Node.js 或 Rust，直接从 GitHub 获取：
+
+**方式一 — Actions 下载（最新构建）：**
+```
+GitHub 仓库 → Actions → Build → 最新一次运行
+→ Artifacts → 下载对应平台的安装包
+```
+
+**方式二 — Releases 下载（稳定版本）：**
+```
+GitHub 仓库 → Releases → 选择版本 → 下载 .dmg 或 .msi
+```
+
 ## 首次启动
 
 首次打开会弹出 **Git 环境配置** 页面：

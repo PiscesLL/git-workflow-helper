@@ -50,6 +50,38 @@ npm run tauri build
 
 构建产物在 `src-tauri/target/release/bundle/` 下。
 
+## 自动构建（GitHub Actions）
+
+项目已配置 GitHub Actions，每次推代码自动在云端编译安装包。
+
+### 方式一：从 Actions 下载
+
+```
+GitHub 仓库 → Actions → Build → 最新一次运行
+→ Artifacts → 下载 git-helper-macos / git-helper-windows
+```
+
+不用打标签，每次推 main 或提 PR 都会自动构建。
+
+### 方式二：打标签自动发布（推荐团队分发）
+
+当你觉得一个版本稳定了，打标签推送即可自动发布 Release：
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+GitHub 会自动构建 macOS 和 Windows 安装包，创建一个 Release 页面，队友可以在 Releases 页面直接下载 `.dmg` 和 `.msi`，无需自己编译。
+
+### 手动触发
+
+也可以在 GitHub 仓库页面手动触发构建：
+
+```
+Actions → Build → Run workflow → 选择分支 → Run
+```
+
 ## 技术栈
 
 - **桌面框架**: Tauri v1（Rust 后端）
