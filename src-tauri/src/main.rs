@@ -4,5 +4,5 @@
 )]
 
 fn main() {
-    git_helper_lib::run()
+    git_helper::run()
 }

@@ -1,6 +1,5 @@
 use serde::Serialize;
 use std::process::Command;
-use tauri::Manager;
 
 // ─── Data types ──────────────────────────────────────────────────────────────
 
@@ -60,10 +59,6 @@ fn git_custom(args: &[&str], path: &str, git_path: &str) -> Result<String, Strin
                 })
             }
         })
-}
-
-fn git(args: &[&str], path: &str) -> Result<String, String> {
-    git_custom(args, path, "")
 }
 
 // ─── System checks ──────────────────────────────────────────────────────────
