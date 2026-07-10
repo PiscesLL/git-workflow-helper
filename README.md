@@ -35,6 +35,10 @@
 
 需要手动调整 minor/major 版本 → 去 [Actions → Bump Version](https://github.com/PiscesLL/git-workflow-helper/actions/workflows/bump-version.yml) 手动选择类型触发。
 
+---
+
+## 构建 & 安装
+
 ## 开发
 
 ```bash
