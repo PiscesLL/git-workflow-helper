@@ -32,8 +32,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Generate icons
-        run: npm run tauri icon src/assets/icon.svg
+      # 图标已提交到仓库，无需重新生成
 
       # macOS: ad-hoc signing (不需要 Apple 开发者账号)
       - name: Build (macOS)
