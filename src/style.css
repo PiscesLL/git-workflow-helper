@@ -389,7 +389,159 @@ input:focus, select:focus {
 .git-path-bar .dot.offline { background: var(--danger); }
 .git-path-bar .dot.unknown { background: #d1d5db; }
 
-/* Scrollbar */
+/* ─── Project Manager ──────────────────────────────────────────────────── */
+
+.project-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 0;
+}
+
+.project-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.project-header h2 { font-size: 16px; font-weight: 600; }
+
+.project-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  gap: 6px;
+}
+.empty-icon { font-size: 48px; opacity: 0.4; }
+
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 10px;
+  flex: 1;
+  align-content: start;
+}
+
+.project-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.project-card:hover {
+  box-shadow: var(--shadow);
+  border-color: var(--primary);
+}
+
+.project-card-top {
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+}
+.project-icon { font-size: 28px; flex-shrink: 0; }
+.project-info { flex: 1; min-width: 0; }
+.project-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+.project-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.project-meta.git-url { font-family: "SF Mono", "Fira Code", "Consolas", monospace; font-size: 11px; }
+
+.project-card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* ─── Modal ────────────────────────────────────────────────────────────── */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+.modal-card {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 24px;
+  width: 440px;
+  max-width: 90vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+.modal-card h3 { font-size: 16px; margin-bottom: 16px; }
+.modal-body { display: flex; flex-direction: column; gap: 12px; }
+.modal-body label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.modal-body label span { font-size: 12px; color: var(--text-secondary); }
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+/* ─── Project tabs ─────────────────────────────────────────────────────── */
+
+.project-tabs {
+  display: flex;
+  gap: 4px;
+  margin-left: 8px;
+}
+.project-tab {
+  padding: 4px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  background: transparent;
+  transition: all 0.12s;
+  border: 1px solid transparent;
+}
+.project-tab:hover { background: #f3f4f6; }
+.project-tab.active {
+  background: #eef2ff;
+  color: var(--primary);
+  font-weight: 500;
+  border-color: var(--primary);
+}
+.project-tab.add-tab {
+  font-weight: 600;
+  padding: 4px 8px;
+}
+
+/* ─── Badges ───────────────────────────────────────────────────────────── */
+
+.header-badges { display: flex; gap: 4px; margin-left: 6px; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.badge-branch { background: #eef2ff; color: var(--primary); }
+.badge-success { background: #dcfce7; color: #16a34a; }
+.badge-warn { background: #fef3c7; color: #d97706; }
+.badge-danger { background: #fee2e2; color: #dc2626; }
+
+/* ─── Scrollbar ────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }

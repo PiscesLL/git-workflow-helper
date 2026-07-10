@@ -31,3 +31,10 @@ export interface LastOperation {
   message: string;
   timestamp: number;
 }
+
+export interface Project {
+  id: string;
+  name: string;
+  localPath: string;
+  gitUrl: string;
+}

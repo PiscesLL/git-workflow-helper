@@ -1,13 +1,87 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { invoke } from "@tauri-apps/api/tauri";
-import type { BranchInfo, GitStatus, LastOperation, BranchType } from "@/types";
+import type { BranchInfo, GitStatus, LastOperation, BranchType, Project } from "@/types";
 
 const GIT_PATH_KEY = "git-helper-git-path";
+const PROJECTS_KEY = "git-helper-projects";
+const ACTIVE_KEY = "git-helper-active-project";
+
+function uid(): string {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
 
 export const useGitStore = defineStore("git", () => {
+  // ─── Project management ───────────────────────────────────────────────────
+
+  const projects = ref<Project[]>([]);
+  const activeProjectId = ref<string | null>(null);
+  const savedGitPath = ref(localStorage.getItem(GIT_PATH_KEY) || "");
+
+  const activeProject = computed(() =>
+    projects.value.find((p) => p.id === activeProjectId.value) ?? null
+  );
+
+  // Persist
+  function saveProjects() {
+    localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects.value));
+  }
+  function saveActive() {
+    if (activeProjectId.value) localStorage.setItem(ACTIVE_KEY, activeProjectId.value);
+    else localStorage.removeItem(ACTIVE_KEY);
+  }
+
+  function loadProjects() {
+    try {
+      const raw = localStorage.getItem(PROJECTS_KEY);
+      if (raw) projects.value = JSON.parse(raw);
+    } catch { projects.value = []; }
+
+    const saved = localStorage.getItem(ACTIVE_KEY);
+    if (saved && projects.value.some((p) => p.id === saved)) {
+      activeProjectId.value = saved;
+    }
+  }
+
+  function addProject(name: string, localPath: string, gitUrl: string) {
+    const p: Project = { id: uid(), name, localPath, gitUrl };
+    projects.value.push(p);
+    saveProjects();
+    return p;
+  }
+
+  function updateProject(id: string, data: Partial<Project>) {
+    const p = projects.value.find((x) => x.id === id);
+    if (p) {
+      Object.assign(p, data);
+      saveProjects();
+    }
+  }
+
+  function deleteProject(id: string) {
+    projects.value = projects.value.filter((x) => x.id !== id);
+    if (activeProjectId.value === id) {
+      activeProjectId.value = null;
+      saveActive();
+    }
+    saveProjects();
+  }
+
+  function setActiveProject(id: string | null) {
+    activeProjectId.value = id;
+    saveActive();
+    if (id) {
+      const p = projects.value.find((x) => x.id === id);
+      if (p) setRepo(p.localPath);
+    } else {
+      setRepo("");
+    }
+  }
+
+  // ─── Repo & Git ────────────────────────────────────────────────────────────
+
   const repoPath = ref("");
-  const gitPath = ref(localStorage.getItem(GIT_PATH_KEY) || "");
+  const gitPath = ref(savedGitPath.value);
   const gitInfo = ref<{ available: boolean; version: string; path: string } | null>(null);
   const repoAccess = ref<{ reachable: boolean; remote_url: string; message: string; auth_method: string } | null>(null);
   const currentBranch = ref("");
@@ -34,6 +108,7 @@ export const useGitStore = defineStore("git", () => {
 
   function setGitPath(path: string) {
     gitPath.value = path;
+    savedGitPath.value = path;
     localStorage.setItem(GIT_PATH_KEY, path);
   }
 
@@ -57,8 +132,10 @@ export const useGitStore = defineStore("git", () => {
   function setRepo(path: string) {
     repoPath.value = path;
     repoAccess.value = null;
-    refreshAll();
-    checkRepoAccess();
+    if (path) {
+      refreshAll();
+      checkRepoAccess();
+    }
   }
 
   // ─── Git operations ────────────────────────────────────────────────────────
@@ -92,9 +169,7 @@ export const useGitStore = defineStore("git", () => {
     try {
       const fullName = type.prefix + name;
       await invoke<string>("create_branch", {
-        path: repoPath.value,
-        name: fullName,
-        gitPath: gp(),
+        path: repoPath.value, name: fullName, gitPath: gp(),
       });
       setOp(true, `已创建并切换到 ${fullName}`);
       await refreshAll();
@@ -189,9 +264,14 @@ export const useGitStore = defineStore("git", () => {
   }
 
   return {
+    // Project mgmt
+    projects, activeProjectId, activeProject, savedGitPath,
+    loadProjects, addProject, updateProject, deleteProject, setActiveProject,
+    // Git state
     repoPath, gitPath, gitInfo, repoAccess,
     currentBranch, branches, status, lastOp, loading, dirty,
     gitAvailable, repoConnected,
+    // Actions
     checkGit, setGitPath, checkRepoAccess,
     setRepo, refreshAll, createBranch, switchBranch,
     pull, commit, push, pullCommitPush, setOp,
