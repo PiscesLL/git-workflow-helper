@@ -106,6 +106,7 @@ export const useGitStore = defineStore("git", () => {
   const status = ref<GitStatus>({ clean: true, staged: 0, unstaged: 0, untracked: 0 });
   const lastOp = ref<LastOperation | null>(null);
   const loading = ref(false);
+  const currentOp = ref("");
 
   const dirty = computed(() => !status.value.clean);
   const gitAvailable = computed(() => gitInfo.value?.available ?? false);
@@ -164,6 +165,7 @@ export const useGitStore = defineStore("git", () => {
   async function refreshAll() {
     if (!repoPath.value) return;
     loading.value = true;
+    currentOp.value = "刷新中...";
     try {
       const [b, s, cur] = await Promise.all([
         invoke<BranchInfo[]>("list_branches", { path: repoPath.value, gitPath: gp() }),
@@ -177,11 +179,13 @@ export const useGitStore = defineStore("git", () => {
       setOp(false, String(e));
     } finally {
       loading.value = false;
+      currentOp.value = "";
     }
   }
 
   async function createBranch(type: BranchType, name: string) {
     if (!repoPath.value || !name) return;
+    currentOp.value = "创建分支中...";
     loading.value = true;
     try {
       const fullName = type.prefix + name;
@@ -194,11 +198,13 @@ export const useGitStore = defineStore("git", () => {
       setOp(false, String(e));
     } finally {
       loading.value = false;
+      currentOp.value = "";
     }
   }
 
   async function switchBranch(name: string) {
     if (!repoPath.value || !name || name === currentBranch.value) return;
+    currentOp.value = "切换分支中...";
     loading.value = true;
     try {
       if (dirty.value) {
@@ -215,11 +221,13 @@ export const useGitStore = defineStore("git", () => {
       setOp(false, String(e));
     } finally {
       loading.value = false;
+      currentOp.value = "";
     }
   }
 
   async function pull() {
     if (!repoPath.value) return;
+    currentOp.value = "拉取中...";
     loading.value = true;
     try {
       const msg = await invoke<string>("git_pull", { path: repoPath.value, gitPath: gp() });
@@ -229,11 +237,13 @@ export const useGitStore = defineStore("git", () => {
       setOp(false, String(e));
     } finally {
       loading.value = false;
+      currentOp.value = "";
     }
   }
 
   async function commit(message: string) {
     if (!repoPath.value || !message) return;
+    currentOp.value = "提交中...";
     loading.value = true;
     try {
       await invoke<string>("git_add_commit", { path: repoPath.value, message, gitPath: gp() });
@@ -243,11 +253,13 @@ export const useGitStore = defineStore("git", () => {
       setOp(false, String(e));
     } finally {
       loading.value = false;
+      currentOp.value = "";
     }
   }
 
   async function push() {
     if (!repoPath.value) return;
+    currentOp.value = "推送中...";
     loading.value = true;
     try {
       const msg = await invoke<string>("git_push", { path: repoPath.value, gitPath: gp() });
@@ -257,11 +269,13 @@ export const useGitStore = defineStore("git", () => {
       setOp(false, String(e));
     } finally {
       loading.value = false;
+      currentOp.value = "";
     }
   }
 
   async function pullCommitPush(message: string) {
     if (!repoPath.value || !message) return;
+    currentOp.value = "拉取 → 提交 → 推送中...";
     loading.value = true;
     try {
       await invoke<string>("git_pull", { path: repoPath.value, gitPath: gp() });
@@ -273,11 +287,13 @@ export const useGitStore = defineStore("git", () => {
       setOp(false, String(e));
     } finally {
       loading.value = false;
+      currentOp.value = "";
     }
   }
 
   async function checkoutRemote(remoteName: string) {
     if (!repoPath.value) return;
+    currentOp.value = "拉取远程分支中...";
     loading.value = true;
     try {
       const msg = await invoke<string>("checkout_remote", {
@@ -289,6 +305,7 @@ export const useGitStore = defineStore("git", () => {
       setOp(false, String(e));
     } finally {
       loading.value = false;
+      currentOp.value = "";
     }
   }
 
@@ -334,7 +351,7 @@ export const useGitStore = defineStore("git", () => {
     loadProjects, addProject, updateProject, deleteProject, setActiveProject,
     // Git state
     repoPath, gitPath, gitInfo, repoAccess,
-    currentBranch, branches, status, lastOp, loading, dirty,
+    currentBranch, branches, status, lastOp, loading, currentOp, dirty,
     gitAvailable, repoConnected,
     // Actions
     checkGit, setGitPath, checkRepoAccess,

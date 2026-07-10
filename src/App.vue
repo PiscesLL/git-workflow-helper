@@ -107,6 +107,20 @@ function switchProject() {
       </div>
     </div>
 
+    <!-- ─── LOADING OVERLAY ─── -->
+    <div v-if="store.loading" class="loading-overlay">
+      <div class="loading-card">
+        <div class="loading-spinner">
+          <div class="spinner-ring"></div>
+          <div class="spinner-ring spinner-ring-inner"></div>
+        </div>
+        <div class="loading-text">{{ store.currentOp || '执行中...' }}</div>
+        <div class="loading-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+
     <!-- ─── HEADER ─── -->
     <div class="header">
       <div class="header-left">

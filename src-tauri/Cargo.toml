@@ -1,6 +1,6 @@
 [package]
 name = "git-helper"
-version = "1.0.0"
+version = "1.1.0"
 description = "Git 小助手 - 团队 Git 工作流工具"
 authors = ["team"]
 edition = "2021"
