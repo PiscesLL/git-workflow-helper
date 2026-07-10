@@ -2,6 +2,8 @@
 
 团队 Git 开发工作流桌面工具。基于 Tauri + Vue 3，适配 macOS 和 Windows。
 
+[📥 下载安装包 (Releases)](https://github.com/PiscesLL/git-workflow-helper/releases)
+
 ## 功能
 
 | 功能 | 说明 |
