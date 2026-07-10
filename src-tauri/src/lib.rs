@@ -210,7 +210,7 @@ fn list_branches(path: String, git_path: Option<String>) -> Result<Vec<BranchInf
 
     let branches: Vec<BranchInfo> = output
         .lines()
-        .filter(|l| !l.is_empty() && !l.contains("->")) // filter out "origin/HEAD ->"
+        .filter(|l| !l.is_empty() && !l.contains("->") && !l.contains("/HEAD")) // filter out origin/HEAD etc.
         .map(|line| {
             let parts: Vec<&str> = line.splitn(5, '|').collect();
             let head = parts.first().unwrap_or(&"");
