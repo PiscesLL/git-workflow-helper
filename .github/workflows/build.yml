@@ -32,38 +32,35 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install system deps (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew install webkit2gtk-4.0
-
       - name: Generate icons
-        run: npx tauri icon src/assets/icon.svg
+        run: npm run tauri icon src/assets/icon.svg
 
+      # macOS: ad-hoc signing (不需要 Apple 开发者账号)
       - name: Build (macOS)
         if: runner.os == 'macOS'
         run: npm run tauri build
         env:
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_NOTARIZATION_TEAM_ID: ${{ secrets.APPLE_NOTARIZATION_TEAM_ID }}
+          APPLE_SIGNING_IDENTITY: "-"
 
       - name: Build (Windows)
         if: runner.os == 'Windows'
         run: npm run tauri build
 
-      - name: Upload artifact (macOS)
+      - name: Upload .app bundle (macOS)
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
           name: git-helper-macos
+          path: src-tauri/target/release/bundle/macos/*.app
+
+      - name: Upload .dmg (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: git-helper-macos-dmg
           path: src-tauri/target/release/bundle/dmg/*.dmg
 
-      - name: Upload artifact (Windows)
+      - name: Upload .msi (Windows)
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
@@ -84,6 +81,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            git-helper-macos/*.dmg
+            git-helper-macos-dmg/*.dmg
             git-helper-windows/*.msi
           generate_release_notes: true
