@@ -25,6 +25,16 @@
 | 🔨 代码重构 | refactor/ | 代码重构，不改变业务逻辑 |
 | 🔧 工具配置 | chore/ | 构建脚本、依赖、CI、工具配置 |
 
+## 自动发版
+
+推代码到 `main` 分支时自动执行：
+
+1. 版本号 patch 递增（`x.y.z` → `x.y.z+1`）
+2. 自动打 tag、构建安装包
+3. 发布到 GitHub Releases
+
+需要手动调整 minor/major 版本 → 去 [Actions → Bump Version](https://github.com/PiscesLL/git-workflow-helper/actions/workflows/bump-version.yml) 手动选择类型触发。
+
 ## 开发
 
 ```bash
