@@ -259,8 +259,40 @@ export const useGitStore = defineStore("git", () => {
     }
   }
 
+  function translateError(msg: string): string {
+    if (!msg) return msg;
+    const rules: [RegExp, string][] = [
+      [/not a git repository/i, "不是有效的 Git 仓库，请检查路径是否正确"],
+      [/pathspec.*did not match/i, "路径或文件名不匹配"],
+      [/already exists/i, "分支或文件已存在"],
+      [/CONFLICT/i, "合并冲突，请手动解决"],
+      [/Permission denied/i, "权限不足，无法连接远程仓库"],
+      [/Authentication failed/i, "认证失败，请检查 Git 凭据配置"],
+      [/Could not resolve host/i, "无法解析远程主机，请检查网络连接"],
+      [/timed out/i, "连接超时，请检查网络或代理设置"],
+      [/failed to push/i, "推送失败，请确认远程仓库状态"],
+      [/divergent branches/i, "本地与远程分支已分叉，请先拉取合并"],
+      [/Merge conflict/i, "合并冲突，请手动解决"],
+      [/branch.*not found/i, "分支不存在"],
+      [/remote origin already exists/i, "远程仓库 origin 已存在"],
+      [/Could not read/i, "无法读取文件或仓库"],
+      [/failed to pull/i, "拉取失败，请检查远程仓库状态"],
+      [/no such file or directory/i, "路径不存在，请检查仓库路径"],
+      [/is not a git command/i, "Git 命令无效，请检查 Git 版本"],
+      [/SSL certificate problem/i, "SSL 证书验证失败，请检查网络或配置"],
+    ];
+    for (const [pattern, cn] of rules) {
+      if (pattern.test(msg)) return cn;
+    }
+    // If it's a git error (starts with "fatal:" or "error:"), show clean Chinese prefix
+    return msg
+      .replace(/^fatal:\s*/i, "")
+      .replace(/^error:\s*/i, "")
+      .replace(/^warning:\s*/i, "警告: ");
+  }
+
   function setOp(success: boolean, message: string) {
-    lastOp.value = { success, message, timestamp: Date.now() };
+    lastOp.value = { success, message: success ? message : translateError(message), timestamp: Date.now() };
   }
 
   return {
