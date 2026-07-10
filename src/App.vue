@@ -8,7 +8,10 @@ import QuickActions from "@/components/QuickActions.vue";
 
 const store = useGitStore();
 const showGitConfig = ref(false);
+const showUsernameConfig = ref(false);
 const gitPathInput = ref("");
+const usernameInput = ref("");
+const useUsernameCheck = ref(false);
 
 onMounted(async () => {
   store.loadProjects();
@@ -34,6 +37,18 @@ async function saveGitPath() {
   if (store.gitAvailable) {
     showGitConfig.value = false;
   }
+}
+
+function openUsernameConfig() {
+  usernameInput.value = store.username;
+  useUsernameCheck.value = store.useUsername;
+  showUsernameConfig.value = true;
+}
+
+function saveUsername() {
+  store.setUsername(usernameInput.value);
+  store.setUseUsername(useUsernameCheck.value);
+  showUsernameConfig.value = false;
 }
 
 function switchProject() {
@@ -67,6 +82,31 @@ function switchProject() {
       </div>
     </div>
 
+    <!-- Username config overlay -->
+    <div v-if="showUsernameConfig" class="setup-overlay" @click.self="showUsernameConfig = false">
+      <div class="setup-card">
+        <div class="setup-icon">👤</div>
+        <h2>用户名设置</h2>
+        <div class="setup-section">
+          <label style="display:flex;flex-direction:column;gap:3px">
+            <span>用户名</span>
+            <input v-model="usernameInput" placeholder="如：zhangsan" class="setup-input" @keyup.enter="saveUsername" />
+          </label>
+          <div style="margin-top:8px;display:flex;align-items:center;gap:6px;font-size:13px">
+            <input type="checkbox" id="use-uname" v-model="useUsernameCheck" />
+            <label for="use-uname" style="cursor:pointer">创建分支时添加用户名前缀</label>
+          </div>
+          <div class="setup-hint" style="margin-top:8px">
+            开启后创建的分支格式：<code>feature/zhangsan/goods-cart</code>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" @click="showUsernameConfig = false">关闭</button>
+          <button class="btn btn-primary" @click="saveUsername">保存</button>
+        </div>
+      </div>
+    </div>
+
     <!-- ─── HEADER ─── -->
     <div class="header">
       <div class="header-left">
@@ -90,6 +130,7 @@ function switchProject() {
       </div>
 
       <div class="header-actions">
+        <button class="btn btn-outline btn-sm" @click="openUsernameConfig" title="用户名设置">👤</button>
         <button class="btn btn-outline btn-sm" @click="openGitConfig" title="Git 路径配置">⚙️</button>
         <button v-if="store.repoPath" class="btn btn-outline btn-sm" @click="store.refreshAll()" :disabled="store.loading">
           <span v-if="store.loading" class="spinner"></span>

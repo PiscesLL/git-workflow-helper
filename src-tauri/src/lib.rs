@@ -13,6 +13,7 @@ const CREATE_NO_WINDOW: u32 = 0x08000000;
 pub struct BranchInfo {
     pub name: String,
     pub current: bool,
+    pub remote: bool,
     pub last_commit: String,
     pub upstream: Option<String>,
 }
@@ -199,9 +200,9 @@ fn list_branches(path: String, git_path: Option<String>) -> Result<Vec<BranchInf
     let gp = git_path.unwrap_or_default();
     let output = git_custom(
         &[
-            "branch",
+            "branch", "-a",
             "--format",
-            "%(HEAD)|%(refname:short)|%(upstream:short)|%(subject)",
+            "%(HEAD)|%(refname)|%(refname:short)|%(upstream:short)|%(subject)",
         ],
         &path,
         &gp,
@@ -209,16 +210,19 @@ fn list_branches(path: String, git_path: Option<String>) -> Result<Vec<BranchInf
 
     let branches: Vec<BranchInfo> = output
         .lines()
-        .filter(|l| !l.is_empty())
+        .filter(|l| !l.is_empty() && !l.contains("->")) // filter out "origin/HEAD ->"
         .map(|line| {
-            let parts: Vec<&str> = line.splitn(4, '|').collect();
+            let parts: Vec<&str> = line.splitn(5, '|').collect();
             let head = parts.first().unwrap_or(&"");
-            let name = parts.get(1).unwrap_or(&"").to_string();
-            let upstream = parts.get(2).filter(|u| !u.is_empty()).map(|s| s.to_string());
-            let subject = parts.get(3).unwrap_or(&"").to_string();
+            let refname = parts.get(1).unwrap_or(&"");
+            let short_name = parts.get(2).unwrap_or(&"").to_string();
+            let upstream = parts.get(3).filter(|u| !u.is_empty()).map(|s| s.to_string());
+            let subject = parts.get(4).unwrap_or(&"").to_string();
+            let is_remote = refname.starts_with("refs/remotes/");
             BranchInfo {
                 current: *head == "*",
-                name,
+                remote: is_remote,
+                name: short_name,
                 last_commit: subject,
                 upstream,
             }
@@ -226,6 +230,21 @@ fn list_branches(path: String, git_path: Option<String>) -> Result<Vec<BranchInf
         .collect();
 
     Ok(branches)
+}
+
+#[tauri::command]
+fn checkout_remote(path: String, remote_name: String, git_path: Option<String>) -> Result<String, String> {
+    let gp = git_path.unwrap_or_default();
+    // remote_name is like "origin/feature/xxx" → extract "feature/xxx" as local name
+    let local_name = remote_name
+        .strip_prefix("origin/")
+        .or_else(|| remote_name.split_once('/').map(|(_, rest)| rest))
+        .unwrap_or(&remote_name);
+
+    git_custom(&["checkout", "--track", &remote_name], &path, &gp)
+        .or_else(|_| git_custom(&["checkout", "-b", local_name, &remote_name], &path, &gp))?;
+
+    Ok(format!("已切换到远程分支 {}（本地分支: {}）", remote_name, local_name))
 }
 
 #[tauri::command]
@@ -370,6 +389,7 @@ pub fn run() {
             list_branches,
             create_branch,
             switch_branch,
+            checkout_remote,
             git_pull,
             git_add_commit,
             git_push,

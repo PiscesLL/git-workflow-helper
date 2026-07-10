@@ -6,6 +6,8 @@ import type { BranchInfo, GitStatus, LastOperation, BranchType, Project } from "
 const GIT_PATH_KEY = "git-helper-git-path";
 const PROJECTS_KEY = "git-helper-projects";
 const ACTIVE_KEY = "git-helper-active-project";
+const USERNAME_KEY = "git-helper-username";
+const USE_USERNAME_KEY = "git-helper-use-username";
 
 function uid(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -21,6 +23,21 @@ export const useGitStore = defineStore("git", () => {
   const activeProject = computed(() =>
     projects.value.find((p) => p.id === activeProjectId.value) ?? null
   );
+
+  // ─── Username ──────────────────────────────────────────────────────────────
+
+  const username = ref(localStorage.getItem(USERNAME_KEY) || "");
+  const useUsername = ref(localStorage.getItem(USE_USERNAME_KEY) !== "false");
+
+  function setUsername(name: string) {
+    username.value = name;
+    localStorage.setItem(USERNAME_KEY, name);
+  }
+
+  function setUseUsername(v: boolean) {
+    useUsername.value = v;
+    localStorage.setItem(USE_USERNAME_KEY, String(v));
+  }
 
   // Persist
   function saveProjects() {
@@ -259,6 +276,22 @@ export const useGitStore = defineStore("git", () => {
     }
   }
 
+  async function checkoutRemote(remoteName: string) {
+    if (!repoPath.value) return;
+    loading.value = true;
+    try {
+      const msg = await invoke<string>("checkout_remote", {
+        path: repoPath.value, remoteName, gitPath: gp(),
+      });
+      setOp(true, msg);
+      await refreshAll();
+    } catch (e: any) {
+      setOp(false, String(e));
+    } finally {
+      loading.value = false;
+    }
+  }
+
   function translateError(msg: string): string {
     if (!msg) return msg;
     const rules: [RegExp, string][] = [
@@ -305,7 +338,8 @@ export const useGitStore = defineStore("git", () => {
     gitAvailable, repoConnected,
     // Actions
     checkGit, setGitPath, checkRepoAccess,
-    setRepo, refreshAll, createBranch, switchBranch,
+    setRepo, refreshAll, createBranch, switchBranch, checkoutRemote,
+    username, useUsername, setUsername, setUseUsername,
     pull, commit, push, pullCommitPush, setOp,
   };
 });

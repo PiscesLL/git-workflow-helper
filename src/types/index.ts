@@ -1,6 +1,7 @@
 export interface BranchInfo {
   name: string;
   current: boolean;
+  remote: boolean;
   lastCommit: string;
   upstream: string | null;
 }
