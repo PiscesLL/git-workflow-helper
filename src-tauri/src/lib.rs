@@ -1,6 +1,12 @@
 use serde::Serialize;
 use std::process::Command;
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
+#[cfg(target_os = "windows")]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
+
 // ─── Data types ──────────────────────────────────────────────────────────────
 
 #[derive(Debug, Serialize)]
@@ -41,10 +47,13 @@ fn git_exe(git_path: &str) -> &str {
 }
 
 fn git_custom(args: &[&str], path: &str, git_path: &str) -> Result<String, String> {
-    Command::new(git_exe(git_path))
-        .args(args)
-        .current_dir(path)
-        .output()
+    let mut cmd = Command::new(git_exe(git_path));
+    cmd.args(args).current_dir(path);
+
+    #[cfg(target_os = "windows")]
+    cmd.creation_flags(CREATE_NO_WINDOW);
+
+    cmd.output()
         .map_err(|e| format!("Git 执行失败: {}", e))
         .and_then(|out| {
             if out.status.success() {
