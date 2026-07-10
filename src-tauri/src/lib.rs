@@ -46,13 +46,17 @@ fn git_exe(git_path: &str) -> &str {
     if git_path.is_empty() { "git" } else { git_path }
 }
 
-fn git_custom(args: &[&str], path: &str, git_path: &str) -> Result<String, String> {
-    let mut cmd = Command::new(git_exe(git_path));
-    cmd.args(args).current_dir(path);
-
+/// Create a Command with CREATE_NO_WINDOW on Windows (no flashing console)
+fn build_cmd(program: &str) -> Command {
+    let mut cmd = Command::new(program);
     #[cfg(target_os = "windows")]
     cmd.creation_flags(CREATE_NO_WINDOW);
+    cmd
+}
 
+fn git_custom(args: &[&str], path: &str, git_path: &str) -> Result<String, String> {
+    let mut cmd = build_cmd(git_exe(git_path));
+    cmd.args(args).current_dir(path);
     cmd.output()
         .map_err(|e| format!("Git 执行失败: {}", e))
         .and_then(|out| {
@@ -77,19 +81,17 @@ fn check_git(git_path: Option<String>) -> GitInfo {
     let path = git_path.unwrap_or_default();
     let exe = git_exe(&path);
 
-    match Command::new(exe).arg("--version").output() {
+    match build_cmd(exe).arg("--version").output() {
         Ok(out) if out.status.success() => {
             let version = String::from_utf8_lossy(&out.stdout).trim().to_string();
             // Resolve the actual path
             let resolved = if cfg!(target_os = "windows") {
-                // On Windows, `where git` gives the path
-                match Command::new("where").arg(exe).output() {
+                match build_cmd("where").arg(exe).output() {
                     Ok(w) => String::from_utf8_lossy(&w.stdout).lines().next().unwrap_or(exe).to_string(),
                     Err(_) => exe.to_string(),
                 }
             } else {
-                // On macOS/Linux, `which git` gives the path
-                match Command::new("which").arg(exe).output() {
+                match build_cmd("which").arg(exe).output() {
                     Ok(w) => String::from_utf8_lossy(&w.stdout).trim().to_string(),
                     Err(_) => exe.to_string(),
                 }
