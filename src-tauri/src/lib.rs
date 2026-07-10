@@ -271,8 +271,13 @@ fn git_pull(path: String, git_path: Option<String>) -> Result<String, String> {
             Ok(format!("已拉取 {} 的最新代码", branch))
         }
         Err(_) => {
-            git_custom(&["pull", "origin", &branch], &path, &gp)?;
-            Ok(format!("已从 origin/{} 拉取代码", branch))
+            match git_custom(&["pull", "origin", &branch], &path, &gp) {
+                Ok(_) => Ok(format!("已从 origin/{} 拉取代码", branch)),
+                Err(e) if e.contains("couldn't find remote ref") || e.contains("not found from") => {
+                    Ok(format!("分支 {} 是本地分支，尚未推送到远程，跳过拉取", branch))
+                }
+                Err(e) => Err(e),
+            }
         }
     }
 }
