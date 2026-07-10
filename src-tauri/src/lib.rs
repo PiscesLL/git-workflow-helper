@@ -229,8 +229,19 @@ fn list_branches(path: String, git_path: Option<String>) -> Result<Vec<BranchInf
 #[tauri::command]
 fn create_branch(path: String, name: String, git_path: Option<String>) -> Result<String, String> {
     let gp = git_path.unwrap_or_default();
-    git_custom(&["checkout", "main"], &path, &gp)?;
-    git_custom(&["pull", "origin", "main"], &path, &gp)?;
+
+    // Detect default branch (main or master)
+    let default_branch = git_custom(
+        &["rev-parse", "--abbrev-ref", "origin/HEAD"],
+        &path, &gp,
+    )
+    .or_else(|_| git_custom(&["rev-parse", "--abbrev-ref", "HEAD"], &path, &gp))
+    .unwrap_or_else(|_| "main".to_string())
+    .trim_start_matches("origin/")
+    .to_string();
+
+    git_custom(&["checkout", &default_branch], &path, &gp)?;
+    git_custom(&["pull", "origin", &default_branch], &path, &gp)?;
     git_custom(&["checkout", "-b", &name], &path, &gp)?;
     Ok(format!("已创建并切换到 {}", name))
 }
