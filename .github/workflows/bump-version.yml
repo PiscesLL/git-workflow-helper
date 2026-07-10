@@ -81,5 +81,7 @@ jobs:
 
       - name: Trigger Build workflow for new tag
         if: steps.decide.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh workflow run build.yml --ref "v${{ steps.bump.outputs.new_version }}"
